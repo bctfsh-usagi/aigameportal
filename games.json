@@ -1,0 +1,26 @@
+{
+  "games": [
+    {
+      "id": "geuljogak",
+      "title": "글조각",
+      "desc": "두 글자 낱말을 자음·모음 여섯 조각으로 맞추는 하루 한 판 퍼즐. 여섯 번의 기회, 이모지 그리드로 결과 공유까지.",
+      "tags": ["데일리 퍼즐", "단어", "홈 화면 설치"],
+      "path": "games/geuljogak/",
+      "thumb": "games/geuljogak/thumb.png",
+      "type": "daily",
+      "added": "2026-07-07",
+      "time": "평균 3분"
+    },
+    {
+      "id": "station",
+      "title": "다음 정거장은",
+      "desc": "한국 지하철의 \"먼저 내리고 타기\"가 룰이 된 퍼즐. 하차 승객을 먼저 내리고, 옷 색과 같은 목적지 칸에 승객을 태워보세요.",
+      "tags": ["퍼즐", "지하철", "홈 화면 설치"],
+      "path": "games/station/",
+      "thumb": "games/station/thumb.png",
+      "type": "arcade",
+      "added": "2026-07-07",
+      "time": "모바일 추천"
+    }
+  ]
+}

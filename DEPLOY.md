@@ -53,8 +53,23 @@ CNAME 파일을 만들고, 내가 도메인 등록업체에서 설정해야 할 
 - [ ] HTTPS 자물쇠가 뜨는가 (PWA·광고 모두 HTTPS 필수)
 
 ## 새 게임 추가 방법
-1. `games/새게임이름/` 폴더에 게임 파일 추가 (index.html 필수)
-2. 포털 `index.html`의 "COMING SOON" 카드를 복사해 새 게임 카드로 교체
+1. `games/새게임이름/` 폴더에 게임 파일 추가 (index.html 필수, thumb.png 권장 — 640×400 대표 이미지)
+2. `games.json`의 `games` 배열에 항목 하나 추가:
+   ```json
+   {
+     "id": "새게임이름",
+     "title": "게임 제목",
+     "desc": "카드에 보일 한두 문장 설명",
+     "tags": ["태그1", "태그2"],
+     "path": "games/새게임이름/",
+     "thumb": "games/새게임이름/thumb.png",
+     "type": "arcade",
+     "added": "2026-07-07",
+     "time": "평균 3분"
+   }
+   ```
+   - `type`: `"daily"`면 DAILY 배지, 그 외에는 `added` 기준 14일간 NEW 배지 자동
+   - 카드·게임 개수·히어로의 추천 게임(가장 최근 `added`)이 전부 자동 갱신됨
 3. 커밋 & 푸시하면 자동 배포
 
 ## 광고 연동 시 참고

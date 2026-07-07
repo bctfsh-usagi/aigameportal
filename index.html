@@ -87,6 +87,7 @@
   .hero h1{
     font-family:var(--display);font-weight:400;
     font-size:clamp(2.4rem, 5.4vw, 3.6rem);line-height:1.18;letter-spacing:.01em;
+    word-break:keep-all;
   }
   .hero h1 .u{
     background:linear-gradient(transparent 62%, rgba(217,166,46,.45) 62%);
@@ -128,21 +129,13 @@
   .device .d-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
   .device .d-title{font-family:var(--display);font-size:1rem;letter-spacing:.28em}
   .device .d-no{font-size:.7rem;color:var(--sub)}
-  .mini{display:grid;grid-template-rows:repeat(4,1fr);gap:5px}
-  .mini .r{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
-  .mini .c{
-    aspect-ratio:1;border-radius:7px;border:1.5px solid var(--line);
-    background:#fff;display:flex;align-items:center;justify-content:center;
-    font-size:.85rem;color:#fff;
+  a.device:hover{border-color:var(--green)}
+  .feat-badge{
+    font-size:.68rem;letter-spacing:.1em;color:#fff;
+    background:var(--blue);padding:4px 10px;border-radius:11px;
   }
-  .mini .g{background:var(--green);border-color:var(--green)}
-  .mini .y{background:var(--yellow);border-color:var(--yellow)}
-  .mini .a{background:#9AA0A6;border-color:#9AA0A6}
-  .mini .e{color:transparent}
-  @media (prefers-reduced-motion:no-preference){
-    .mini .c{opacity:0;animation:tin .35s forwards}
-    @keyframes tin{from{opacity:0;transform:rotateX(80deg)}to{opacity:1;transform:rotateX(0)}}
-  }
+  .feat-shot{border-radius:14px;overflow:hidden;border:1.5px solid var(--line);background:var(--paper)}
+  .feat-shot img{width:100%;display:block;aspect-ratio:8/5;object-fit:cover}
   .device .d-foot{margin-top:14px;text-align:center;font-size:.72rem;color:var(--sub)}
   /* 떠 있는 조각 장식 */
   .float-chip{
@@ -173,8 +166,13 @@
     background:
       linear-gradient(rgba(34,38,44,.92),rgba(34,38,44,.92)),
       repeating-linear-gradient(45deg,#2A2F36,#2A2F36 14px,#22262C 14px,#22262C 28px);
-    position:relative;
+    position:relative;overflow:hidden;
   }
+  .gthumb img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transition:transform .25s;
+  }
+  a.gcard:hover .gthumb img{transform:scale(1.04)}
   .gthumb .tile{
     width:52px;height:52px;border-radius:12px;color:#fff;font-size:1.45rem;
     display:flex;align-items:center;justify-content:center;
@@ -182,8 +180,10 @@
   }
   .gthumb .live{
     position:absolute;top:12px;left:12px;font-size:.68rem;letter-spacing:.1em;
-    background:var(--green);color:#fff;padding:4px 10px;border-radius:11px;
+    background:var(--green);color:#fff;padding:4px 10px;border-radius:11px;z-index:2;
+    box-shadow:0 2px 6px rgba(34,38,44,.25);
   }
+  .gthumb .live.new{background:var(--blue)}
   .gbody{padding:18px 20px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
   .gbody h3{font-family:var(--display);font-weight:400;font-size:1.15rem;letter-spacing:.06em}
   .gbody p{font-size:.85rem;color:var(--sub);line-height:1.7;flex:1}
@@ -250,7 +250,7 @@
   <div>
     <span class="eyebrow"><span class="dot"></span>매일 자정, 새 퍼즐 오픈</span>
     <h1>하루 5분,<br><span class="u">조각</span>을 맞추는 즐거움</h1>
-    <p class="lead">설치도, 회원가입도 없어요. 브라우저에서 바로 열리는 한입 크기 게임들 — 오늘의 문제를 풀고, 결과를 친구에게 자랑해보세요.</p>
+    <p class="lead">설치도, 회원가입도 없어요. 브라우저에서 바로 열리는 한입 크기 게임들 — 데일리 퍼즐부터 아케이드까지, 진열장에 새 조각이 계속 늘어나요.</p>
     <div class="hero-actions">
       <a class="btn-play" href="games/geuljogak/">▶ 글조각 플레이</a>
       <a class="btn-sub" href="#games">전체 게임 보기 ↓</a>
@@ -261,17 +261,17 @@
     </div>
   </div>
 
-  <div class="preview" aria-hidden="true">
-    <div class="float-chip fc1">ㅎ</div>
-    <div class="float-chip fc2">ㄹ</div>
-    <div class="device">
+  <div class="preview">
+    <div class="float-chip fc1" aria-hidden="true">🚇</div>
+    <div class="float-chip fc2" aria-hidden="true">🧩</div>
+    <a class="device" id="featured" href="#games">
       <div class="d-head">
-        <span class="d-title">글조각</span>
-        <span class="d-no" id="pno">오늘의 문제</span>
+        <span class="d-title" id="featTitle">신작 게임</span>
+        <span class="feat-badge" id="featBadge">NEW</span>
       </div>
-      <div class="mini" id="mini"></div>
-      <div class="d-foot">자음·모음 여섯 조각으로 낱말 맞추기</div>
-    </div>
+      <div class="feat-shot"><img id="featImg" src="" alt="추천 게임 미리보기"></div>
+      <div class="d-foot" id="featFoot">이번 주 새로 도착한 조각</div>
+    </a>
   </div>
 </div>
 
@@ -279,60 +279,9 @@
 <section id="games">
   <div class="sec-head">
     <h2>게임 목록</h2>
-    <span class="count">2개 서비스 중 · 계속 추가돼요</span>
+    <span class="count" id="gameCount">불러오는 중…</span>
   </div>
-  <div class="games">
-
-    <a class="gcard" href="games/geuljogak/">
-      <div class="gthumb">
-        <span class="live">DAILY</span>
-        <div class="tile" style="background:var(--green)">글</div>
-        <div class="tile" style="background:var(--yellow);transform:rotate(-4deg)">조</div>
-        <div class="tile" style="background:var(--blue);transform:rotate(3deg)">각</div>
-      </div>
-      <div class="gbody">
-        <h3>글조각</h3>
-        <p>두 글자 낱말을 자음·모음 여섯 조각으로 맞추는 하루 한 판 퍼즐. 여섯 번의 기회, 이모지 그리드로 결과 공유까지.</p>
-        <div class="gmeta">
-          <span class="tag">데일리 퍼즐</span><span class="tag">단어</span><span class="tag">홈 화면 설치</span>
-        </div>
-        <div class="grow">
-          <span class="gplay">플레이 →</span>
-          <span class="gtime">평균 3분</span>
-        </div>
-      </div>
-    </a>
-
-    <a class="gcard" href="games/station/">
-      <div class="gthumb">
-        <span class="live" style="background:var(--blue)">NEW</span>
-        <div class="tile" style="background:var(--blue)">🚇</div>
-        <div class="tile" style="background:var(--green);transform:rotate(-4deg)">정</div>
-        <div class="tile" style="background:var(--yellow);transform:rotate(3deg)">차</div>
-      </div>
-      <div class="gbody">
-        <h3>다음 정거장은</h3>
-        <p>한국 지하철의 "먼저 내리고 타기"가 룰이 된 퍼즐. 하차 승객을 먼저 내리고, 옷 색과 같은 목적지 칸에 승객을 태워보세요.</p>
-        <div class="gmeta">
-          <span class="tag">퍼즐</span><span class="tag">지하철</span><span class="tag">홈 화면 설치</span>
-        </div>
-        <div class="grow">
-          <span class="gplay">플레이 →</span>
-          <span class="gtime">모바일 추천</span>
-        </div>
-      </div>
-    </a>
-
-    <div class="gcard soon">
-      <div class="gthumb"><span class="q">?</span></div>
-      <div class="gbody">
-        <h3>세 번째 게임</h3>
-        <p>아이디어 수집 중. 해보고 싶은 게임이 있다면 언제든 제안해주세요.</p>
-        <div class="gmeta"><span class="tag">준비 중</span></div>
-      </div>
-    </div>
-
-  </div>
+  <div class="games" id="gameList"></div>
 </section>
 
 <!-- ============ 소개 ============ -->
@@ -345,14 +294,14 @@
       <p>앱스토어도, 다운로드도 없어요. 링크를 열면 그게 곧 게임 시작. 홈 화면에 추가하면 앱처럼 쓸 수도 있어요.</p>
     </div>
     <div class="feat">
-      <div class="ico" style="background:var(--yellow)">🌙</div>
-      <h3>매일 자정의 약속</h3>
-      <p>모두가 같은 문제를 풀어요. 하루 한 판이라 부담이 없고, 내일 자정이면 새 문제가 조용히 도착해요.</p>
+      <div class="ico" style="background:var(--yellow)">🧩</div>
+      <h3>퍼즐부터 아케이드까지</h3>
+      <p>하루 한 판 데일리 퍼즐부터 손맛 나는 아케이드까지. 장르를 가리지 않고 새 조각이 계속 진열장에 추가돼요.</p>
     </div>
     <div class="feat">
-      <div class="ico" style="background:var(--blue)">🟩</div>
-      <h3>스포일러 없는 자랑</h3>
-      <p>정답은 가리고 여정만 보여주는 이모지 그리드. 친구에게 공유하면 "이걸 4번 만에?"라는 답장이 올 거예요.</p>
+      <div class="ico" style="background:var(--blue)">🌙</div>
+      <h3>매일 들를 이유</h3>
+      <p>데일리 퍼즐은 자정마다 새 문제가 열리고, 진열장에는 새 게임이 조용히 도착해요. 내일도 들를 이유가 하나쯤 있어요.</p>
     </div>
   </div>
 </section>
@@ -385,29 +334,74 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-/* 히어로 미니 보드: 게임 중반의 그럴듯한 장면을 재현 */
-const rows=[
-  ["a:ㅅ","y:ㅏ","a:ㅇ","g:ㄱ","a:ㅗ","a:ㄹ"],
-  ["g:ㅎ","g:ㅏ","a:ㅁ","g:ㄱ","y:ㄹ","a:ㄴ"],
-  ["g:ㅎ","g:ㅏ","g:ㄴ","g:ㄱ","g:ㅡ","g:ㄹ"],
-  ["e:","e:","e:","e:","e:","e:"]
-];
-const mini=document.getElementById("mini");
-rows.forEach((r,ri)=>{
-  const d=document.createElement("div"); d.className="r";
-  r.forEach((cell,ci)=>{
-    const [cls,ch]=cell.split(":");
-    const c=document.createElement("div");
-    c.className="c "+cls; c.textContent=ch||"·";
-    c.style.animationDelay=(ri*6+ci)*45+"ms";
-    d.appendChild(c);
-  });
-  mini.appendChild(d);
-});
+/* ============ 게임 목록: games.json 기반 자동 렌더 ============
+   새 게임 추가 방법:
+   1. games/새게임/ 폴더에 게임 업로드 (index.html 필수, thumb.png 권장)
+   2. games.json 배열에 항목 하나 추가 — 카드·개수·NEW 배지 모두 자동 */
+const NEW_DAYS = 14; // 추가 후 이 기간 동안 NEW 배지
 
-/* 오늘의 문제 번호 (게임과 동일한 계산) */
-const epoch=new Date(2026,0,1);
-document.getElementById("pno").textContent="#"+(Math.floor((Date.now()-epoch.getTime())/86400000)+1);
+function badgeFor(g){
+  if(g.type === "daily") return {text:"DAILY", cls:""};
+  const age = (Date.now() - new Date(g.added + "T00:00:00")) / 86400000;
+  if(age <= NEW_DAYS) return {text:"NEW", cls:"new"};
+  return null;
+}
+
+function cardHTML(g){
+  const b = badgeFor(g);
+  const thumb = g.thumb
+    ? `<img src="${g.thumb}" alt="" loading="lazy">`
+    : `<div class="tile" style="background:var(--green)">${g.title.charAt(0)}</div>`;
+  return `
+  <a class="gcard" href="${g.path}">
+    <div class="gthumb">
+      ${thumb}
+      ${b ? `<span class="live ${b.cls}">${b.text}</span>` : ""}
+    </div>
+    <div class="gbody">
+      <h3>${g.title}</h3>
+      <p>${g.desc}</p>
+      <div class="gmeta">${g.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      <div class="grow">
+        <span class="gplay">플레이 →</span>
+        <span class="gtime">${g.time || ""}</span>
+      </div>
+    </div>
+  </a>`;
+}
+
+const SOON_CARD = `
+  <div class="gcard soon">
+    <div class="gthumb"><span class="q">?</span></div>
+    <div class="gbody">
+      <h3>다음 게임</h3>
+      <p>다음 조각을 깎는 중이에요. 해보고 싶은 게임이 있다면 언제든 제안해주세요.</p>
+      <div class="gmeta"><span class="tag">준비 중</span></div>
+    </div>
+  </div>`;
+
+fetch("games.json")
+  .then(r => r.json())
+  .then(data => {
+    const games = data.games;
+    document.getElementById("gameList").innerHTML =
+      games.map(cardHTML).join("") + SOON_CARD;
+    document.getElementById("gameCount").textContent =
+      games.length + "개 서비스 중 · 계속 추가돼요";
+
+    /* 히어로 추천: 가장 최근 추가된 게임 (동일 날짜면 목록의 뒤쪽 우선) */
+    const feat = games.reduce((a,g)=> new Date(g.added) >= new Date(a.added) ? g : a);
+    const fb = badgeFor(feat);
+    document.getElementById("featured").href = feat.path;
+    document.getElementById("featTitle").textContent = feat.title;
+    document.getElementById("featBadge").textContent = fb ? fb.text : "PLAY";
+    if(fb && !fb.cls) document.getElementById("featBadge").style.background = "var(--green)";
+    if(feat.thumb) document.getElementById("featImg").src = feat.thumb;
+    document.getElementById("featFoot").textContent = feat.tags.join(" · ");
+  })
+  .catch(() => {
+    document.getElementById("gameCount").textContent = "목록을 불러오지 못했어요";
+  });
 </script>
 </body>
 </html>
