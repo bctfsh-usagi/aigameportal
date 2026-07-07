@@ -1,0 +1,16 @@
+{
+  "name": "글조각 — 여섯 조각 낱말 퍼즐",
+  "short_name": "글조각",
+  "description": "매일 한 판, 자음과 모음 여섯 조각으로 낱말을 맞춰보세요.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#23272E",
+  "theme_color": "#F3F5F2",
+  "lang": "ko",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>글조각 — 여섯 조각 낱말 퍼즐</title>
+
+<!-- ===== PWA: 홈 화면 추가 시 앱처럼 실행 ===== -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F3F5F2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="글조각">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- =====================================================
+  광고 연동 지점 ①: 광고 스크립트 로드
+  AdSense 승인 후 아래 주석을 해제하고 본인의 게시자 ID(ca-pub-XXXX)를 넣으세요.
+  리워드/전면 광고까지 쓰려면 "AdSense for Games(Ad Placement API)" 승인이 필요합니다.
+
+  <script async
+    data-adbreak-test="on"
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
+  <script>
+    window.adsbygoogle = window.adsbygoogle || [];
+    const adBreak = (o) => adsbygoogle.push(o);
+    const adConfig = (o) => adsbygoogle.push(o);
+    adConfig({ preloadAdBreaks: "on", sound: "on" });
+  </script>
+====================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F3F5F2; --ink:#23272E; --sub:#6B7280; --paper:#FFFFFF; --line:#C9CFC6;
+    --correct:#2E7D5B; --present:#D9A62E; --absent:#8D939B; --accent:#3A5F8A;
+    --key:#E4E8E2; --radius:10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  html,body{height:100%;overscroll-behavior:none}
+  body{
+    font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    background:var(--bg);color:var(--ink);
+    display:flex;flex-direction:column;align-items:center;
+    -webkit-user-select:none;user-select:none;
+  }
+
+  /* ================= 타이틀 화면 ================= */
+  #titleScreen{
+    position:fixed;inset:0;background:var(--bg);z-index:40;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+    padding:24px;padding-bottom:calc(24px + var(--safe-bottom));
+  }
+  .logo{display:flex;gap:10px}
+  .logo .lt{
+    width:76px;height:76px;border-radius:16px;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:2.2rem;
+    box-shadow:0 4px 0 rgba(35,39,46,.18);
+  }
+  .logo .lt:nth-child(1){background:var(--correct)}
+  .logo .lt:nth-child(2){background:var(--present);transform:rotate(-3deg)}
+  .logo .lt:nth-child(3){background:var(--accent);transform:rotate(2deg)}
+  @media (prefers-reduced-motion:no-preference){
+    .logo .lt{opacity:0;animation:drop .5s forwards}
+    .logo .lt:nth-child(2){animation-delay:.15s}
+    .logo .lt:nth-child(3){animation-delay:.3s}
+    @keyframes drop{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:translateY(0) rotate(var(--r,0deg))}}
+    .logo .lt:nth-child(2){--r:-3deg}
+    .logo .lt:nth-child(3){--r:2deg}
+  }
+  .tagline{color:var(--sub);font-size:.95rem;letter-spacing:.12em;margin-top:-16px}
+  .menu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px}
+  .menu button{
+    border:none;border-radius:14px;padding:16px;cursor:pointer;
+    font-family:inherit;font-size:1.05rem;letter-spacing:.08em;
+  }
+  .menu .m1{background:var(--ink);color:#fff}
+  .menu .m2{background:var(--paper);color:var(--ink);border:2px solid var(--ink)}
+  .menu .m3{background:none;color:var(--sub);font-size:.9rem;padding:10px}
+  #installHint{font-size:.78rem;color:var(--sub);text-align:center;line-height:1.7;max-width:300px}
+  #installBtn{
+    display:none;border:1px dashed var(--accent);background:none;color:var(--accent);
+    border-radius:10px;padding:10px 16px;font-family:inherit;font-size:.85rem;cursor:pointer;
+  }
+
+  /* ================= 게임 화면 ================= */
+  #gameView{display:none;width:100%;flex-direction:column;align-items:center;flex:1}
+  #gameView.on{display:flex}
+  header{
+    width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-bottom:1px solid var(--line);
+  }
+  header h1{font-size:1.3rem;letter-spacing:.35em;font-weight:400;cursor:pointer}
+  header h1 span{color:var(--accent)}
+  .hbtns{display:flex;gap:8px}
+  .hbtns button{
+    border:1px solid var(--line);background:var(--paper);color:var(--ink);
+    border-radius:8px;padding:6px 10px;font-family:inherit;font-size:.8rem;cursor:pointer;
+  }
+
+  main{width:100%;max-width:520px;padding:10px 12px calc(96px + var(--safe-bottom));
+    display:flex;flex-direction:column;align-items:center;gap:10px}
+  .meta{font-size:.8rem;color:var(--sub)}
+
+  .compose{display:flex;gap:10px}
+  .compose .block{
+    width:58px;height:58px;background:var(--paper);
+    border:2px solid var(--ink);border-radius:12px;
+    box-shadow:inset 0 0 0 3px var(--bg), inset 0 0 0 4px var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  }
+
+  .board{display:grid;grid-template-rows:repeat(6,1fr);gap:5px}
+  .row{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+  .tile{
+    width:min(12vw,46px);height:min(12vw,46px);
+    background:var(--paper);border:2px solid var(--line);border-radius:var(--radius);
+    display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:transform .15s;
+  }
+  .tile.filled{border-color:var(--ink)}
+  .tile.correct{background:var(--correct);border-color:var(--correct);color:#fff}
+  .tile.present{background:var(--present);border-color:var(--present);color:#fff}
+  .tile.absent{background:var(--absent);border-color:var(--absent);color:#fff}
+  @media (prefers-reduced-motion:no-preference){
+    .tile.pop{animation:pop .12s}
+    .tile.flip{animation:flip .4s}
+  }
+  @keyframes pop{50%{transform:scale(1.12)}}
+  @keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+
+  .hintbar{display:flex;align-items:center;gap:10px;min-height:36px}
+  .hintbar button{
+    border:none;border-radius:20px;padding:8px 15px;cursor:pointer;
+    background:var(--accent);color:#fff;font-family:inherit;font-size:.83rem;
+  }
+  .hintbar button:disabled{background:var(--absent);cursor:default}
+  .hintmsg{font-size:.85rem;color:var(--accent)}
+
+  .keyboard{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:2px}
+  .krow{display:flex;justify-content:center;gap:5px}
+  .key{
+    flex:1;max-width:46px;height:46px;border:none;border-radius:8px;
+    background:var(--key);color:var(--ink);font-family:inherit;font-size:1.05rem;cursor:pointer;
+  }
+  .key.wide{max-width:76px;font-size:.85rem}
+  .key:disabled{opacity:.28;cursor:default}
+  .key.correct{background:var(--correct);color:#fff}
+  .key.present{background:var(--present);color:#fff}
+  .key.absent{background:var(--absent);color:#fff}
+  .key:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+  /* 광고 연동 지점 ②: 하단 배너 자리 (지금은 목업) */
+  .banner{
+    position:fixed;bottom:0;left:0;right:0;height:calc(56px + var(--safe-bottom));
+    padding-bottom:var(--safe-bottom);
+    background:repeating-linear-gradient(45deg,#E9ECE8,#E9ECE8 12px,#F1F3EF 12px,#F1F3EF 24px);
+    border-top:1px dashed var(--absent);
+    display:none;align-items:center;justify-content:center;
+    color:var(--sub);font-size:.78rem;letter-spacing:.05em;z-index:10;
+  }
+  .banner.on{display:flex}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(30,34,40,.55);
+    display:none;align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    background:var(--paper);border-radius:16px;max-width:380px;width:100%;
+    padding:24px;display:flex;flex-direction:column;gap:13px;
+  }
+  .modal h2{font-size:1.15rem;font-weight:400;letter-spacing:.1em}
+  .modal p{font-size:.9rem;line-height:1.65}
+  .modal .note{font-size:.78rem;color:var(--sub)}
+  .modal .primary{
+    border:none;border-radius:10px;padding:12px;cursor:pointer;
+    background:var(--accent);color:#fff;font-family:inherit;font-size:.95rem;
+  }
+  .modal .ghost{
+    border:none;border-radius:10px;padding:12px;cursor:pointer;
+    background:var(--key);color:var(--ink);font-family:inherit;font-size:.95rem;
+  }
+  .modal .close{align-self:flex-end;border:none;background:none;cursor:pointer;font-size:1rem;color:var(--sub);font-family:inherit}
+  .legend{display:flex;gap:14px;font-size:.82rem;align-items:center;flex-wrap:wrap}
+  .legend i{display:inline-block;width:16px;height:16px;border-radius:4px;vertical-align:-3px;margin-right:4px}
+
+  .admock{
+    background:#22262C;color:#E7E9EC;border-radius:16px;max-width:380px;width:100%;
+    padding:26px;text-align:center;display:flex;flex-direction:column;gap:14px;
+  }
+  .admock .tag{font-size:.72rem;letter-spacing:.2em;color:#9AA2AD}
+  .admock .fake{
+    height:150px;border:1px dashed #57606C;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#9AA2AD;line-height:1.7;
+  }
+  .admock .count{font-size:.85rem}
+
+  .stats{display:flex;justify-content:space-around;text-align:center}
+  .stats b{display:block;font-size:1.5rem;font-weight:400}
+  .stats span{font-size:.75rem;color:var(--sub)}
+
+  .toast{
+    position:fixed;top:70px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:24px;
+    font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:60;white-space:nowrap;
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ================= 타이틀 화면 ================= -->
+<div id="titleScreen">
+  <div class="logo" aria-hidden="true">
+    <div class="lt">글</div><div class="lt">조</div><div class="lt">각</div>
+  </div>
+  <div class="tagline">여섯 조각으로 낱말 맞추기</div>
+  <div class="menu">
+    <button class="m1" id="menuDaily">오늘의 문제</button>
+    <button class="m2" id="menuPractice">연습 모드</button>
+    <button class="m3" id="menuHelp">게임 방법</button>
+  </div>
+  <button id="installBtn">📲 홈 화면에 설치하기</button>
+  <div id="installHint"></div>
+</div>
+
+<!-- ================= 게임 화면 ================= -->
+<div id="gameView">
+  <header>
+    <h1 id="homeBtn" title="타이틀로">글<span>조</span>각</h1>
+    <div class="hbtns">
+      <button id="helpBtn" aria-label="게임 방법">?</button>
+      <button id="menuBtn">메뉴</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="meta" id="meta"></div>
+    <div class="compose" aria-hidden="true">
+      <div class="block" id="blk0"></div>
+      <div class="block" id="blk1"></div>
+    </div>
+    <div class="board" id="board" aria-label="퍼즐 판"></div>
+    <div class="hintbar">
+      <button id="hintBtn">💡 힌트 · 광고 보기</button>
+      <div class="hintmsg" id="hintMsg"></div>
+    </div>
+    <div class="keyboard" id="keyboard"></div>
+  </main>
+</div>
+
+<div class="banner" id="banner">배너 광고 영역 · AdSense / AdFit 코드가 들어갈 자리</div>
+
+<!-- 도움말 -->
+<div class="overlay" id="helpOverlay">
+  <div class="modal">
+    <button class="close" data-close="helpOverlay">닫기 ✕</button>
+    <h2>게임 방법</h2>
+    <p>두 글자 낱말을 <b>자음·모음 여섯 조각</b>으로 여섯 번 안에 맞춰보세요.<br>
+    각 글자는 <b>자음 + 모음 + 받침</b> 구조예요. (예: 한글 → ㅎㅏㄴ ㄱㅡㄹ)</p>
+    <div class="legend">
+      <span><i style="background:var(--correct)"></i>위치까지 정확</span>
+      <span><i style="background:var(--present)"></i>다른 자리에 있음</span>
+      <span><i style="background:var(--absent)"></i>없는 조각</span>
+    </div>
+    <p class="note">매일 자정에 새 문제가 나와요. 막히면 광고를 보고 힌트를 얻을 수 있어요.</p>
+    <button class="primary" data-close="helpOverlay">알겠어요</button>
+  </div>
+</div>
+
+<!-- 목업 광고 (실제 SDK로 교체되는 부분) -->
+<div class="overlay" id="adOverlay">
+  <div class="admock">
+    <div class="tag">AD · 광고 예시</div>
+    <div class="fake">실제 서비스에서는 이 자리에서<br>리워드 / 전면 광고가 재생됩니다</div>
+    <div class="count" id="adCount"></div>
+  </div>
+</div>
+
+<!-- 결과 -->
+<div class="overlay" id="resultOverlay">
+  <div class="modal">
+    <button class="close" data-close="resultOverlay">닫기 ✕</button>
+    <h2 id="resultTitle"></h2>
+    <p id="resultBody"></p>
+    <div class="stats">
+      <div><b id="stPlay">0</b><span>플레이</span></div>
+      <div><b id="stWin">0</b><span>정답</span></div>
+      <div><b id="stStreak">0</b><span>연속</span></div>
+    </div>
+    <button class="primary" id="shareBtn">결과 공유하기 📋</button>
+    <button class="ghost" id="againBtn">연습 모드로 한 판 더</button>
+    <button class="ghost" id="toMenuBtn">타이틀로 돌아가기</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================
+   광고 연동 지점 ③: 광고 함수
+   지금은 목업(가짜 광고)이 재생됩니다.
+   AdSense for Games(Ad Placement API) 승인 후에는
+   아래 REAL 버전 주석을 해제하고 mock 버전을 지우면 됩니다.
+===================================================== */
+const Ads = {
+  // --- 목업 버전 (프로토타입) ---
+  rewarded(onReward){ mockAd(5, onReward); },
+  interstitial(onDone){ mockAd(3, onDone); },
+  banner(){ document.getElementById("banner").classList.add("on"); }
+
+  // --- REAL 버전 (Ad Placement API) ---
+  // rewarded(onReward){
+  //   adBreak({ type:"reward", name:"hint",
+  //     beforeReward(showAdFn){ showAdFn(); },
+  //     adViewed(){ onReward(); },
+  //     adDismissed(){ toast("광고를 끝까지 봐야 힌트를 받아요"); }
+  //   });
+  // },
+  // interstitial(onDone){
+  //   adBreak({ type:"next", name:"round_end", adBreakDone(){ onDone(); } });
+  // },
+  // banner(){ /* AdSense 배너 <ins> 태그 삽입 */ }
+};
+
+function mockAd(sec, done){
+  const ov=$("adOverlay"); ov.classList.add("show");
+  let n=sec;
+  $("adCount").textContent=`${n}초 후 계속됩니다`;
+  const tm=setInterval(()=>{
+    n--;
+    if(n<=0){ clearInterval(tm); ov.classList.remove("show"); done(); }
+    else $("adCount").textContent=`${n}초 후 계속됩니다`;
+  },1000);
+}
+
+/* ===== 한글 조립/분해 ===== */
+const CHO = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const JUNG = ["ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ","ㅗ","ㅘ","ㅙ","ㅚ","ㅛ","ㅜ","ㅝ","ㅞ","ㅟ","ㅠ","ㅡ","ㅢ","ㅣ"];
+const JONG = ["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+
+function decompose(word){
+  const out=[];
+  for(const ch of word){
+    const code=ch.charCodeAt(0)-0xAC00;
+    out.push(CHO[Math.floor(code/588)], JUNG[Math.floor((code%588)/28)], JONG[code%28]);
+  }
+  return out;
+}
+function composeSyllable(cho,jung,jong){
+  if(!cho) return "";
+  if(!jung) return cho;
+  const c=CHO.indexOf(cho), j=JUNG.indexOf(jung), g=jong?JONG.indexOf(jong):0;
+  return String.fromCharCode(0xAC00 + (c*21+j)*28 + g);
+}
+
+/* ===== 정답 단어 목록 ===== */
+const WORDS = ["한글","강물","눈물","손목","발목","창문","물감","신발","선물","정답",
+"남산","감정","인생","문장","공간","만남","열정","반달","별빛","달빛",
+"물결","숨결","진심","봄날","산책","생각","운동","음악","웃음","눈빛",
+"첫눈","밤길","손님","장난","동생","정성","감성","얼굴","일상","성장",
+"광장","손짓","몸짓","눈짓","명절","열심","안녕","인연","진실","본질"];
+
+const CONS = ["ㄱ","ㄴ","ㄷ","ㄹ","ㅁ","ㅂ","ㅅ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+const VOWS = ["ㅏ","ㅑ","ㅓ","ㅕ","ㅗ","ㅛ","ㅜ","ㅠ","ㅡ","ㅣ","ㅐ","ㅔ"];
+const KEYMAP = {r:"ㄱ",s:"ㄴ",e:"ㄷ",f:"ㄹ",a:"ㅁ",q:"ㅂ",t:"ㅅ",d:"ㅇ",w:"ㅈ",c:"ㅊ",z:"ㅋ",x:"ㅌ",v:"ㅍ",g:"ㅎ",
+k:"ㅏ",i:"ㅑ",j:"ㅓ",u:"ㅕ",h:"ㅗ",y:"ㅛ",n:"ㅜ",b:"ㅠ",m:"ㅡ",l:"ㅣ",o:"ㅐ",p:"ㅔ"};
+
+/* ===== 상태 ===== */
+const MAXROW=6, LEN=6;
+let mode="daily";
+let answer, answerJamo;
+let rowIdx=0, slotIdx=0;
+let grid=[];
+let over=false, hintsLeft=2;
+let keyState={};
+const stats={play:0,win:0,streak:0};
+const resultRows=[];
+const $=id=>document.getElementById(id);
+
+function dailyIndex(){
+  const epoch=new Date(2026,0,1);
+  const days=Math.floor((Date.now()-epoch.getTime())/86400000);
+  return ((days%WORDS.length)+WORDS.length)%WORDS.length;
+}
+function puzzleNo(){
+  const epoch=new Date(2026,0,1);
+  return Math.floor((Date.now()-epoch.getTime())/86400000)+1;
+}
+
+/* ===== 화면 전환 (타이틀 ↔ 게임) ===== */
+function showTitle(){
+  $("gameView").classList.remove("on");
+  $("titleScreen").style.display="flex";
+  $("banner").classList.remove("on");
+}
+function startGame(m){
+  mode=m;
+  $("titleScreen").style.display="none";
+  $("gameView").classList.add("on");
+  Ads.banner();   // 게임 화면에서만 배너 노출
+  newGame();
+}
+$("menuDaily").onclick=()=>startGame("daily");
+$("menuPractice").onclick=()=>startGame("practice");
+$("menuHelp").onclick=()=>$("helpOverlay").classList.add("show");
+$("homeBtn").onclick=showTitle;
+$("menuBtn").onclick=showTitle;
+
+function newGame(){
+  const idx = mode==="daily" ? dailyIndex() : Math.floor(Math.random()*WORDS.length);
+  answer=WORDS[idx]; answerJamo=decompose(answer);
+  rowIdx=0; slotIdx=0; over=false; hintsLeft=2; keyState={}; resultRows.length=0;
+  grid=Array.from({length:MAXROW},()=>Array(LEN).fill(""));
+  $("meta").textContent = mode==="daily" ? `오늘의 문제 #${puzzleNo()}` : "연습 모드 · 무작위 낱말";
+  $("hintMsg").textContent="";
+  $("hintBtn").disabled=false;
+  $("hintBtn").textContent="💡 힌트 · 광고 보기";
+  buildBoard(); buildKeyboard(); updatePreview();
+}
+
+/* ===== 렌더링 ===== */
+function buildBoard(){
+  const b=$("board"); b.innerHTML="";
+  for(let r=0;r<MAXROW;r++){
+    const row=document.createElement("div"); row.className="row";
+    for(let c=0;c<LEN;c++){
+      const t=document.createElement("div");
+      t.className="tile"; t.id=`t${r}-${c}`;
+      row.appendChild(t);
+    }
+    b.appendChild(row);
+  }
+}
+function buildKeyboard(){
+  const kb=$("keyboard"); kb.innerHTML="";
+  const rows=[CONS.slice(0,7),CONS.slice(7),VOWS.slice(0,6),VOWS.slice(6)];
+  rows.forEach((keys,i)=>{
+    const kr=document.createElement("div"); kr.className="krow";
+    keys.forEach(j=>{
+      const k=document.createElement("button");
+      k.className="key"; k.textContent=j; k.dataset.jamo=j;
+      if(keyState[j]) k.classList.add(keyState[j]);
+      k.onclick=()=>input(j);
+      kr.appendChild(k);
+    });
+    if(i===3){
+      const del=document.createElement("button");
+      del.className="key wide"; del.textContent="지움"; del.onclick=erase; kr.appendChild(del);
+      const ent=document.createElement("button");
+      ent.className="key wide"; ent.textContent="입력"; ent.onclick=submit; kr.appendChild(ent);
+    }
+    kb.appendChild(kr);
+  });
+  refreshKeyLock();
+}
+function refreshKeyLock(){
+  const needVowel = slotIdx%3===1;
+  document.querySelectorAll(".key[data-jamo]").forEach(k=>{
+    const isVowel=VOWS.includes(k.dataset.jamo);
+    k.disabled = over || slotIdx>=LEN || (needVowel!==isVowel);
+  });
+}
+function updatePreview(){
+  const g=grid[Math.min(rowIdx,MAXROW-1)];
+  $("blk0").textContent=composeSyllable(g[0],g[1],g[2]);
+  $("blk1").textContent=composeSyllable(g[3],g[4],g[5]);
+}
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+/* ===== 입력 ===== */
+function input(j){
+  if(over||slotIdx>=LEN) return;
+  const needVowel=slotIdx%3===1;
+  if(needVowel!==VOWS.includes(j)) return;
+  grid[rowIdx][slotIdx]=j;
+  const t=$(`t${rowIdx}-${slotIdx}`);
+  t.textContent=j; t.classList.add("filled","pop");
+  setTimeout(()=>t.classList.remove("pop"),150);
+  slotIdx++; updatePreview(); refreshKeyLock();
+}
+function erase(){
+  if(over||slotIdx===0) return;
+  slotIdx--;
+  grid[rowIdx][slotIdx]="";
+  const t=$(`t${rowIdx}-${slotIdx}`);
+  t.textContent=""; t.classList.remove("filled");
+  updatePreview(); refreshKeyLock();
+}
+function submit(){
+  if(over) return;
+  if(slotIdx<LEN){ toast("여섯 조각을 모두 채워주세요"); return; }
+  evaluate();
+}
+
+/* ===== 판정 ===== */
+function evaluate(){
+  const guess=grid[rowIdx].slice();
+  const res=Array(LEN).fill("absent");
+  const remain={};
+  answerJamo.forEach((j,i)=>{ if(guess[i]!==j) remain[j]=(remain[j]||0)+1; });
+  guess.forEach((j,i)=>{ if(j===answerJamo[i]) res[i]="correct"; });
+  guess.forEach((j,i)=>{
+    if(res[i]==="correct") return;
+    if(remain[j]>0){ res[i]="present"; remain[j]--; }
+  });
+  resultRows.push(res.map(s=>s==="correct"?"🟩":s==="present"?"🟨":"⬜").join(""));
+
+  res.forEach((s,i)=>{
+    setTimeout(()=>{
+      const t=$(`t${rowIdx}-${i}`);
+      t.classList.add("flip");
+      setTimeout(()=>t.classList.add(s),180);
+      const j=guess[i], rank={absent:0,present:1,correct:2};
+      if(!keyState[j]||rank[s]>rank[keyState[j]]){
+        keyState[j]=s;
+        document.querySelectorAll(`.key[data-jamo="${j}"]`).forEach(k=>{
+          k.classList.remove("correct","present","absent"); k.classList.add(s);
+        });
+      }
+    }, i*220);
+  });
+
+  const won=guess.every((j,i)=>j===answerJamo[i]);
+  setTimeout(()=>{
+    if(won||rowIdx===MAXROW-1) finish(won);
+    else{ rowIdx++; slotIdx=0; updatePreview(); refreshKeyLock(); }
+  }, LEN*220+300);
+}
+
+function finish(won){
+  over=true; refreshKeyLock();
+  $("hintBtn").disabled=true;
+  stats.play++;
+  if(won){ stats.win++; stats.streak++; } else stats.streak=0;
+  // 라운드 종료 → 전면 광고 → 결과 (자연스러운 광고 시점)
+  Ads.interstitial(()=>{
+    $("resultTitle").textContent = won?"정답이에요! 🎉":"아쉬워요";
+    $("resultBody").innerHTML = won
+      ? `<b>${answer}</b> — ${rowIdx+1}번 만에 맞췄어요.`
+      : `정답은 <b>${answer}</b> (${answerJamo.join(" ")}) 였어요.`;
+    $("stPlay").textContent=stats.play;
+    $("stWin").textContent=stats.win;
+    $("stStreak").textContent=stats.streak;
+    $("resultOverlay").classList.add("show");
+  });
+}
+
+/* ===== 힌트 (리워드 광고) ===== */
+$("hintBtn").onclick=()=>{
+  if(over||hintsLeft<=0) return;
+  Ads.rewarded(()=>{
+    const candidates=[];
+    for(let i=0;i<LEN;i++){
+      let solved=false;
+      for(let r=0;r<rowIdx;r++) if(grid[r][i]===answerJamo[i]) solved=true;
+      if(!solved) candidates.push(i);
+    }
+    const pos=candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:0;
+    hintsLeft--;
+    $("hintMsg").textContent=`${pos+1}번째 조각은 「${answerJamo[pos]}」`;
+    $("hintBtn").textContent=hintsLeft>0?`💡 힌트 · 광고 보기 (${hintsLeft}회 남음)`:"힌트 소진";
+    if(hintsLeft<=0) $("hintBtn").disabled=true;
+  });
+};
+
+/* ===== 공유 ===== */
+$("shareBtn").onclick=async ()=>{
+  const head = mode==="daily"
+    ? `글조각 #${puzzleNo()} ${resultRows.length}/${MAXROW}`
+    : `글조각 연습 ${resultRows.length}/${MAXROW}`;
+  const text=head+"\n\n"+resultRows.join("\n");
+  // 모바일에선 시스템 공유 시트, 데스크톱에선 클립보드
+  if(navigator.share){
+    try{ await navigator.share({text}); return; }catch(e){}
+  }
+  try{ await navigator.clipboard.writeText(text); toast("결과를 복사했어요"); }
+  catch(e){ toast("복사에 실패했어요"); }
+};
+
+/* ===== 결과 모달 버튼 ===== */
+$("againBtn").onclick=()=>{
+  $("resultOverlay").classList.remove("show");
+  mode="practice"; newGame();
+};
+$("toMenuBtn").onclick=()=>{
+  $("resultOverlay").classList.remove("show");
+  showTitle();
+};
+$("helpBtn").onclick=()=>$("helpOverlay").classList.add("show");
+document.querySelectorAll("[data-close]").forEach(b=>{
+  b.onclick=()=>$(b.dataset.close).classList.remove("show");
+});
+
+/* ===== 물리 키보드 (두벌식) ===== */
+document.addEventListener("keydown",e=>{
+  if(!$("gameView").classList.contains("on")) return;
+  if($("adOverlay").classList.contains("show")) return;
+  if(e.key==="Enter"){ submit(); return; }
+  if(e.key==="Backspace"){ erase(); return; }
+  const j=KEYMAP[e.key.toLowerCase()];
+  if(j) input(j);
+});
+
+/* ===== PWA: 서비스 워커 등록 & 설치 안내 ===== */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+// 안드로이드 크롬: 설치 프롬프트 버튼
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",(e)=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  $("installBtn").style.display="block";
+});
+$("installBtn").onclick=async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  $("installBtn").style.display="none";
+};
+// iOS 사파리: 수동 안내
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+if(isIOS && !isStandalone){
+  $("installHint").textContent="iPhone에서는 사파리의 공유 버튼 → 「홈 화면에 추가」를 누르면 앱처럼 설치돼요";
+}
+if(isStandalone){
+  $("installHint").textContent="";
+}
+</script>
+</body>
+</html>
