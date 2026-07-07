@@ -292,6 +292,7 @@
     <div class="foot-links">
       <a href="#games">게임</a>
       <a href="#about">소개</a>
+      <a href="admin.html" rel="nofollow">관리</a>
       <!-- 광고 심사 대비: privacy.html 만들면 여기에 연결 -->
     </div>
     <span>© 2026 조각 아케이드</span>
@@ -378,7 +379,7 @@ fetch("games.json")
     const banner = document.getElementById("featured");
     banner.href = feat.path;
     banner.hidden = false;
-    document.getElementById("featImg").src = feat.thumb || "";
+    document.getElementById("featImg").src = feat.banner || feat.thumb || "";
     document.getElementById("featImg").alt = feat.title + " 화면";
     document.getElementById("featTitle").textContent = feat.title;
     document.getElementById("featDesc").textContent = feat.desc;
